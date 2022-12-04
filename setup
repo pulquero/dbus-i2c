@@ -1,0 +1,70 @@
+#!/bin/bash
+
+configFile="/u-boot/config.txt"
+modulesFile="/etc/modules"
+
+source "/data/SetupHelper/CommonResources"
+
+createFileIfNotExists ()
+{
+	if [ ! -f "$1" ]; then
+		echo >> "$1"
+		if [ ! -z "$2" ]; then
+			chmod "$2" "$1"
+		fi
+	fi
+}
+
+insertLines ()
+{
+	if [ $(grep -c "$2" "$1") == 0 ]; then
+		echo "#### Begin: dbus-i2c" >> "$1"
+		echo "$2" >> "$1"
+		echo "#### End: dbus-i2c" >> "$1"
+		rebootNeeded="$3"
+	fi
+}
+
+removeLines ()
+{
+	if [ -f "$1" ]; then
+		if [ $(grep -c "#### Begin: dbus-i2c" "$1") != 0 ]; then
+			sed -i -e '/#### Begin: dbus-i2c/,/#### End: dbus-i2c/d' "$1"
+			rebootNeeded="$2"
+		fi
+	fi
+}
+
+
+#### running manually and OK to proceed - prompt for input
+if [ $scriptAction == 'NONE' ] ; then
+	# display initial message
+	echo
+	echo "DBus support for I2C devices"
+	
+	standardActionPrompt
+fi
+
+
+#### install code goes here
+if [ $scriptAction == 'INSTALL' ] ; then
+
+	logMessage "++ Installing DBUS I2C services"
+
+	insertLines "$configFile" "dtparam=i2c_arm=on" true
+	createFileIfNotExists "$modulesFile"
+	insertLines "$modulesFile" "i2c-dev" true
+fi
+
+
+#### uninstalling - check scriptAction again
+# if an install step failed package needs to be removed
+if [ $scriptAction == 'UNINSTALL' ] ; then
+	logMessage "++ Uninstalling DBUS I2C services"
+
+	removeLines "$configFile" true
+	removeLines "$modulesFile" true
+fi
+
+
+endScript

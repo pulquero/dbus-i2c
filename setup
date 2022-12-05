@@ -75,6 +75,7 @@ if [ $scriptAction == 'NONE' ] ; then
 	echo "DBus support for I2C devices"
 	
 	standardActionPrompt
+	createFileIfNotExists "$setupOptionsDir/bus-1"
 	yesNoPrompt "Install BME280 service? [y/n]"
 	if [ "$yesResponse" == 'true' ]; then
 		createFileIfNotExists "$setupOptionsDir/device-bme280"

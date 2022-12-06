@@ -5,9 +5,9 @@ from settingsdevice import SettingsDevice
 
 
 class BME280Service():
-    def __init__(self, conn, i2cBus):
+    def __init__(self, conn, i2cBus, i2cAddr):
         self.i2cBus = i2cBus
-        self.i2cAddr = 0x76
+        self.i2cAddr = i2cAddr
         self.calibrationParams = bme280.load_calibration_params(self.i2cBus, self.i2cAddr)
         self.serviceType = "temperature"
         self.supportedSettings = {}

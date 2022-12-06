@@ -9,6 +9,8 @@ import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
 from pathlib import Path
+import json
+import importlib
 import logging
 import smbus2
 
@@ -38,31 +40,26 @@ def update():
 
 def initDBusServices():
     setupOptions = Path("/data/setupOptions/dbus-i2c")
-    buses = []
+    buses = {}
     for busPath in setupOptions.glob("bus-*"):
         busId = int(busPath.name[len("bus-"):])
         i2cBus = smbus2.SMBus(busId)
         i2cBus.id = busId
-        buses.append(i2cBus)
+        buses[busId] = i2cBus
 
     if not buses:
         raise Exception("No I2C buses configured!")
 
     conn = dbusConnection()
     for devicePath in setupOptions.glob("device-*"):
-        deviceName = devicePath.name[len("device-"):]
-        device = None
-        # if we are really clever, we would dynamically create the correct i2c device object based on this file alone
-        # (e.g. json content containing class name)
-        # but we use a hard-coded if statement for now.
-        if deviceName == 'bme280':
-            from bme280_service import BME280Service
-            device = BME280Service(conn, buses[0])
-        else:
-            logging.warning(f"Unsupported device: {deviceName}")
-
-        if device:
-            i2cDevices.append(device)
+        with devicePath.open() as f:
+            deviceConfig = json.load(f)
+        deviceModule = importlib.import_module(deviceConfig['module'])
+        constructor = getattr(deviceModule, deviceConfig['class'])
+        bus = buses[deviceConfig['bus']]
+        addr = deviceConfig['address']
+        device = constructor(conn, bus, addr)
+        i2cDevices.append(device)
 
     if not i2cDevices:
         raise Exception("No I2C devices configured!")

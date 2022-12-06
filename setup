@@ -18,6 +18,11 @@ createFileIfNotExists ()
 	fi
 }
 
+createDeviceFile ()
+{
+	echo "{\"module\": \"$2\", \"class\": \"$3\", \"bus\": $4, \"address\": $5}" > "$1"
+}
+
 insertLines ()
 {
 	if [ $(grep -c "$2" "$1") == 0 ]; then
@@ -78,7 +83,7 @@ if [ $scriptAction == 'NONE' ] ; then
 	if [ $scriptAction == 'INSTALL' ]; then
 		yesNoPrompt "Do you have a BME280? [y/n]"
 		if [ "$yesResponse" == 'true' ]; then
-			createFileIfNotExists "$setupOptionsDir/device-bme280"
+			createDeviceFile "$setupOptionsDir/device-bme280" "bme280_service" "BME280Service" 1 $((0x76))
 		else
 			rm "$setupOptionsDir/device-bme280"
 		fi

@@ -75,10 +75,13 @@ if [ $scriptAction == 'NONE' ] ; then
 	echo "DBus support for I2C devices"
 	
 	standardActionPrompt
-	createFileIfNotExists "$setupOptionsDir/bus-1"
-	yesNoPrompt "Install BME280 service? [y/n]"
-	if [ "$yesResponse" == 'true' ]; then
-		createFileIfNotExists "$setupOptionsDir/device-bme280"
+	if [ $scriptAction == 'INSTALL' ]; then
+		yesNoPrompt "Do you have a BME280? [y/n]"
+		if [ "$yesResponse" == 'true' ]; then
+			createFileIfNotExists "$setupOptionsDir/device-bme280"
+		else
+			rm "$setupOptionsDir/device-bme280"
+		fi
 	fi
 fi
 
@@ -95,9 +98,12 @@ if [ $scriptAction == 'INSTALL' ] ; then
 	extInstall "https://github.com/victronenergy/velib_python" "velib_python" "master" "/"
 	extInstall "https://github.com/kplindegaard/smbus2" "smbus2"
 
+	createFileIfNotExists "$setupOptionsDir/bus-1"
 	if [ -f "$setupOptionsDir/device-bme280" ]; then
 		extInstall "https://github.com/pulquero/bme280" "bme280"
 	fi
+
+	installService $packageName
 fi
 
 
@@ -106,6 +112,7 @@ fi
 if [ $scriptAction == 'UNINSTALL' ] ; then
 	logMessage "++ Uninstalling DBUS I2C services"
 
+	removeService $packageName
 	extUninstall "bme280"
 	extUninstall "smbus2"
 	removeLines "$configFile" true

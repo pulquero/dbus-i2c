@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 import sys
 from script_utils import SCRIPT_HOME

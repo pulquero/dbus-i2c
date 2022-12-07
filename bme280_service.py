@@ -53,3 +53,6 @@ class BME280Service():
         self.service["/Temperature"] = data.temperature
         self.service["/Pressure"] = data.pressure
         self.service["/Humidity"] = data.humidity
+
+    def __str__(self):
+        return "BME280"

@@ -14,6 +14,8 @@ import importlib
 import logging
 import smbus2
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("dbus-i2c")
 
 i2cDevices = []
 
@@ -42,24 +44,28 @@ def initDBusServices():
     setupOptions = Path("/data/setupOptions/dbus-i2c")
     buses = {}
     for busPath in setupOptions.glob("bus-*"):
+        logger.info(f"Found I2C bus file {busPath}")
         busId = int(busPath.name[len("bus-"):])
         i2cBus = smbus2.SMBus(busId)
         i2cBus.id = busId
         buses[busId] = i2cBus
+        logger.info(f"Registered I2C bus {i2cBus.id}")
 
     if not buses:
         raise Exception("No I2C buses configured!")
 
     conn = dbusConnection()
     for devicePath in setupOptions.glob("device-*"):
+        logger.info(f"Found I2C device file {devicePath}")
         with devicePath.open() as f:
             deviceConfig = json.load(f)
         deviceModule = importlib.import_module(deviceConfig['module'])
         constructor = getattr(deviceModule, deviceConfig['class'])
-        bus = buses[deviceConfig['bus']]
+        i2cBus = buses[deviceConfig['bus']]
         addr = deviceConfig['address']
-        device = constructor(conn, bus, addr)
+        device = constructor(conn, i2cBus, addr)
         i2cDevices.append(device)
+        logger.info("Registered {} on bus {} at address {:#04x}".format(device, i2cBus.id, addr))
 
     if not i2cDevices:
         raise Exception("No I2C devices configured!")

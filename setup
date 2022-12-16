@@ -45,26 +45,28 @@ removeLines ()
 
 extInstall ()
 {
+	url=$1
+	project=$2
 	branch=$3
 	repoPath=$4
 	if [ -z "$branch" ]; then
 		branch="master"
 	fi
 	if [ -z "$repoPath" ]; then
-		repoPath="$2"
+		repoPath="$project"
 	fi
-	logMessage "++ Install Python library $2 ($branch) from $1 into $pythonLibs"
-	wget "$1/archive/refs/heads/$branch.zip" -O "/tmp/$2.zip"
-	mkdir -p "/tmp/$2"
-	unzip -oq "/tmp/$2.zip" -d "/tmp/$2"
+	logMessage "++ Install Python library $project ($branch) from $url into $pythonLibs"
+	wget "$url/archive/refs/heads/$branch.zip" -O "/tmp/$project.zip"
+	mkdir -p "/tmp/$project"
+	unzip -oq "/tmp/$project.zip" -d "/tmp/$project"
 	if [ "$repoPath" == "/" ]; then
 		# don't quote - need shell expansion!
-		cp -R /tmp/$2/$2-$branch/* "$pythonLibs"
+		cp -R /tmp/$project/$project-$branch/* "$pythonLibs"
 	else
-		rm -fr "$pythonLibs/$2"
-		mv "/tmp/$2/$2-$branch/$repoPath" "$pythonLibs/$2"
+		rm -fr "$pythonLibs/$project"
+		mv "/tmp/$project/$project-$branch/$repoPath" "$pythonLibs/$repoPath"
 	fi
-	rm -fr "/tmp/$2" "/tmp/$2.zip"
+	rm -fr "/tmp/$project" "/tmp/$project.zip"
 }
 
 extUninstall ()
@@ -88,16 +90,33 @@ if [ $scriptAction == 'NONE' ] ; then
 	
 	standardActionPrompt
 	if [ $scriptAction == 'INSTALL' ]; then
-		rm "$setupOptionsDir/device-bme280-*"
-		i=1
-		while true; do
-			prompt "If you have a BME280, enter its I2C address or press enter to finish [0x76/0x77]: "
-			if [ -z "$response" ]; then
-				break
-			fi
-			createDeviceFile "$setupOptionsDir/device-bme280-$i" "bme280_service" "BME280Service" 1 $(($response)) 10000
-			i=$((i+1))
-		done
+
+		yesNoPrompt "Reconfigure? [y/n] "
+		if [ "$yesResponse" == 'true' ]; then
+
+			rm -f $setupOptionsDir/device-bme280-*
+			i=1
+			while true; do
+				prompt "If you have a BME280, enter its I2C address or press enter to finish: [0x76/0x77] "
+				if [ -z "$response" ]; then
+					break
+				fi
+				createDeviceFile "$setupOptionsDir/device-bme280-$i" "bme280_service" "BME280Service" 1 $(($response)) 10000
+				i=$((i+1))
+			done
+
+			rm -f $setupOptionsDir/device-ina219-*
+			i=1
+			while true; do
+				prompt "If you have an INA219, enter its I2C address or press enter to finish: [0x40/0x41/0x42/0x44/0x45] "
+				if [ -z "$response" ]; then
+					break
+				fi
+				createDeviceFile "$setupOptionsDir/device-ina219-$i" "ina219_service" "INA219Service" 1 $(($response)) 1000
+				i=$((i+1))
+			done
+
+		fi
 	fi
 fi
 
@@ -116,6 +135,12 @@ if [ $scriptAction == 'INSTALL' ] ; then
 	if [ -f "$setupOptionsDir/device-bme280-1" ]; then
 		extInstall "https://github.com/kplindegaard/smbus2" "smbus2"
 		extInstall "https://github.com/pulquero/bme280" "bme280"
+	fi
+
+	if [ -f "$setupOptionsDir/device-ina219-1" ]; then
+		extInstall "https://github.com/adafruit/Adafruit_Python_GPIO" "Adafruit_Python_GPIO" "master" "Adafruit_GPIO"
+		extInstall "https://github.com/adafruit/Adafruit_Python_PureIO" "Adafruit_Python_PureIO" "main" "Adafruit_PureIO"
+		extInstall "https://github.com/chrisb2/pi_ina219" "pi_ina219" "master" "/"
 	fi
 
 	installService $packageName

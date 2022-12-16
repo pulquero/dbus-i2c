@@ -37,6 +37,16 @@ def update():
     return True
 
 
+def createUpdateWrapper(device):
+    def updateWrapper():
+        try:
+            device.update()
+        except:
+            logger.exception(f"Failed to update {device}")
+        return True
+    return updateWrapper
+
+
 def initDBusServices():
     setupOptions = Path("/data/setupOptions/dbus-i2c")
     for devicePath in setupOptions.glob("device-*"):
@@ -49,12 +59,10 @@ def initDBusServices():
         i2cAddr = deviceConfig['address']
         updateInterval = deviceConfig['updateInterval']
         device = constructor(dbusConnection(), i2cBus, i2cAddr)
-        device.update()
-        def updateWrapper():
-            device.update()
-            return True
-        GLib.timeout_add(updateInterval, updateWrapper)
-        logger.info("Registered {} on bus {} at address {:#04x}".format(device, i2cBus, i2cAddr))
+        updater = createUpdateWrapper(device)
+        updater()
+        GLib.timeout_add(updateInterval, updater)
+        logger.info("Registered {} on bus {} at address {:#04x}".format(device.deviceName, i2cBus, i2cAddr))
 
 
 def main():

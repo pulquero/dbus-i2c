@@ -20,7 +20,7 @@ createFileIfNotExists ()
 
 createDeviceFile ()
 {
-	echo "{\"module\": \"$2\", \"class\": \"$3\", \"bus\": $4, \"address\": $5}" > "$1"
+	echo "{\"module\": \"$2\", \"class\": \"$3\", \"bus\": $4, \"address\": $5, \"updateInterval\": $6}" > "$1"
 }
 
 insertLines ()
@@ -88,12 +88,16 @@ if [ $scriptAction == 'NONE' ] ; then
 	
 	standardActionPrompt
 	if [ $scriptAction == 'INSTALL' ]; then
-		prompt "If you have a BME280, enter its I2C address or press enter to skip [0x76/0x77]: "
-		if [ ! -z "$response" ]; then
-			createDeviceFile "$setupOptionsDir/device-bme280" "bme280_service" "BME280Service" 1 $(($response))
-		else
-			rm "$setupOptionsDir/device-bme280"
-		fi
+		rm "$setupOptionsDir/device-bme280-*"
+		i=1
+		while true; do
+			prompt "If you have a BME280, enter its I2C address or press enter to finish [0x76/0x77]: "
+			if [ -z "$response" ]; then
+				break
+			fi
+			createDeviceFile "$setupOptionsDir/device-bme280-$i" "bme280_service" "BME280Service" 1 $(($response)) 10000
+			i=$((i+1))
+		done
 	fi
 fi
 
@@ -108,10 +112,9 @@ if [ $scriptAction == 'INSTALL' ] ; then
 	insertLines "$modulesFile" "i2c-dev" true
 	mkdir -p "$pythonLibs"
 	extInstall "https://github.com/victronenergy/velib_python" "velib_python" "master" "/"
-	extInstall "https://github.com/kplindegaard/smbus2" "smbus2"
 
-	createFileIfNotExists "$setupOptionsDir/bus-1"
-	if [ -f "$setupOptionsDir/device-bme280" ]; then
+	if [ -f "$setupOptionsDir/device-bme280-1" ]; then
+		extInstall "https://github.com/kplindegaard/smbus2" "smbus2"
 		extInstall "https://github.com/pulquero/bme280" "bme280"
 	fi
 

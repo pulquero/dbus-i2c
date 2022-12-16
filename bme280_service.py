@@ -1,3 +1,4 @@
+from smbus2 import SMBus
 import bme280
 from service_utils import createService, getSettingsPath
 import dbus
@@ -8,11 +9,12 @@ class BME280Service():
     def __init__(self, conn, i2cBus, i2cAddr):
         self.i2cBus = i2cBus
         self.i2cAddr = i2cAddr
-        self.calibrationParams = bme280.load_calibration_params(self.i2cBus, self.i2cAddr)
+        with SMBus(self.i2cBus) as bus:
+            self.calibrationParams = bme280.load_calibration_params(bus, self.i2cAddr)
         self.serviceType = "temperature"
         self.supportedSettings = {}
         self.settablePaths = {}
-        self.service = createService(conn, self.serviceType, self.i2cBus.id, self.i2cAddr,
+        self.service = createService(conn, self.serviceType, self.i2cBus, self.i2cAddr,
             __file__, "BME280")
         self.service.add_path("/Temperature", None)
         # default type is battery
@@ -31,7 +33,7 @@ class BME280Service():
         settingName = subPath[1:].lower()
         self.service.add_path(subPath, initialValue, writeable=True, onchangecallback=lambda path, newValue: self._value_changed(settingName, newValue))
         self.supportedSettings[settingName] = [
-            getSettingsPath(self.serviceType, self.i2cBus.id, self.i2cAddr, subPath),
+            getSettingsPath(self.serviceType, self.i2cBus, self.i2cAddr, subPath),
             initialValue,
             minValue,
             maxValue
@@ -49,7 +51,8 @@ class BME280Service():
         self.service[path] = newValue
 
     def update(self):
-        data = bme280.sample(self.i2cBus, self.i2cAddr, self.calibrationParams)
+        with SMBus(self.i2cBus) as bus:
+            data = bme280.sample(bus, self.i2cAddr, self.calibrationParams)
         self.service["/Temperature"] = data.temperature
         self.service["/Pressure"] = data.pressure
         self.service["/Humidity"] = data.humidity

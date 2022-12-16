@@ -73,6 +73,13 @@ extUninstall ()
 	rm -fr "$pythonLibs/$1"
 }
 
+prompt ()
+{
+	/bin/echo -n "$*"
+	read response
+}
+
+
 #### running manually and OK to proceed - prompt for input
 if [ $scriptAction == 'NONE' ] ; then
 	# display initial message
@@ -81,9 +88,9 @@ if [ $scriptAction == 'NONE' ] ; then
 	
 	standardActionPrompt
 	if [ $scriptAction == 'INSTALL' ]; then
-		yesNoPrompt "Do you have a BME280? [y/n]"
-		if [ "$yesResponse" == 'true' ]; then
-			createDeviceFile "$setupOptionsDir/device-bme280" "bme280_service" "BME280Service" 1 $((0x76))
+		prompt "If you have a BME280, enter its I2C address or press enter to skip [0x76/0x77]: "
+		if [ ! -z "$response" ]; then
+			createDeviceFile "$setupOptionsDir/device-bme280" "bme280_service" "BME280Service" 1 $(($response))
 		else
 			rm "$setupOptionsDir/device-bme280"
 		fi

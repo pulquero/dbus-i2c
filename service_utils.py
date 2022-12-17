@@ -2,7 +2,7 @@ from script_utils import VERSION
 from vedbus import VeDbusService
 from settingsdevice import SettingsDevice
 
-BASE_DEVICE_INSTANCE_ID = 1000
+BASE_DEVICE_INSTANCE_ID = 1024
 PRODUCT_ID = 0
 FIRMWARE_VERSION = 0
 HARDWARE_VERSION = 0

@@ -4,13 +4,12 @@ from service_utils import createService, SimpleService
 
 
 class BME280Service(SimpleService):
-    def _init_service(self, conn):
+    def __init__(self, conn, i2cBus, i2cAddr):
+        super().__init__(conn, i2cBus, i2cAddr, 'temperature', 'BME280')
+
+    def _configure_service(self):
         with SMBus(self.i2cBus) as bus:
             self.calibrationParams = bme280.load_calibration_params(bus, self.i2cAddr)
-        self.serviceType = "temperature"
-        self.deviceName = "BME280"
-        self.service = createService(conn, self.serviceType, self.i2cBus, self.i2cAddr,
-            __file__, self.deviceName)
         self.service.add_path("/Temperature", None)
         # default type is battery
         self.add_settable_path("/TemperatureType", 0, 0, 2)

@@ -35,12 +35,16 @@ def getDeviceInstance(i2cBusNum, i2cAddr):
 
 
 class SimpleService:
-    def __init__(self, conn, i2cBus, i2cAddr):
+    def __init__(self, conn, i2cBus, i2cAddr, serviceType, deviceName):
+        self.serviceType = serviceType
         self.i2cBus = i2cBus
         self.i2cAddr = i2cAddr
+        self.deviceName = deviceName
+        self.service = createService(conn, self.serviceType, self.i2cBus, self.i2cAddr,
+            __file__, self.deviceName)
         self.supportedSettings = {}
         self.settablePaths = {}
-        self._init_service(conn)
+        self._configure_service()
         self.settings = SettingsDevice(conn, self.supportedSettings, self._setting_changed)
         self.initializingSettings = True
         for settingName in self.supportedSettings.keys():

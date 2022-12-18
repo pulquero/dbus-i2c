@@ -14,17 +14,16 @@ def toKWh(joules):
 
 
 class INA219Service(SimpleService):
-    def _init_service(self, conn):
+    def __init__(self, conn, i2cBus, i2cAddr, serviceType):
+        super().__init__(conn, i2cBus, i2cAddr, serviceType, 'INA219')
+
+    def _configure_service(self):
         self.device = INA219(SHUNT_OHMS, busnum=self.i2cBus, address=self.i2cAddr, max_expected_amps=MAX_EXPECTED_AMPS)
         self.device.configure(voltage_range=INA219.RANGE_16V)
         self.device.sleep()
-        self.serviceType = "dcload"
-        self.deviceName = "INA219"
-        self.service = createService(conn, self.serviceType, self.i2cBus, self.i2cAddr,
-            __file__, self.deviceName)
         self.service.add_path("/Dc/0/Voltage", None)
         self.service.add_path("/Dc/0/Current", None)
-        self.service.add_path("/History/EnergyIn", 0)
+        self._configure_energy_history()
         self.service.add_path("/Alarms/LowVoltage", 0)
         self.service.add_path("/Alarms/HighVoltage", 0)
         self.service.add_path("/Alarms/LowTemperature", 0)
@@ -44,5 +43,27 @@ class INA219Service(SimpleService):
 
         if self.lastPower is not None:
             # trapezium integration
-            self.service["/History/EnergyIn"] += toKWh((self.lastPower.power + power)/2 * (now - self.lastPower.timestamp))
+            self._increment_energy_usage(round(toKWh((self.lastPower.power + power)/2 * (now - self.lastPower.timestamp)), 6))
         self.lastPower = PowerSample(power, now)
+
+
+class INA219DCLoadService(INA219Service):
+    def __init__(self, conn, i2cBus, i2cAddr):
+        super().__init__(conn, i2cBus, i2cAddr, 'dcload')
+
+    def _configure_energy_history(self):
+        self.service.add_path('/History/EnergyIn', 0)
+
+    def _increment_energy_usage(self, change):
+        self.service['/History/EnergyIn'] += change
+
+
+class INA219DCSourceService(INA219Service):
+    def __init__(self, conn, i2cBus, i2cAddr):
+        super().__init__(conn, i2cBus, i2cAddr, 'dcsource')
+
+    def _configure_energy_history(self):
+        self.service.add_path('/History/EnergyOut', 0)
+
+    def _increment_energy_usage(self, change):
+        self.service['/History/EnergyOut'] += change

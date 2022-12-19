@@ -105,6 +105,17 @@ if [ $scriptAction == 'NONE' ] ; then
 				i=$((i+1))
 			done
 
+			rm -f $setupOptionsDir/device-sht3x-*
+			i=1
+			while true; do
+				prompt "If you have a SHT3x, enter its I2C address or press enter to finish: [0x44/0x45] "
+				if [ -z "$response" ]; then
+					break
+				fi
+				createDeviceFile "$setupOptionsDir/device-sht3x-$i" "sht_service" "SHT3xService" 1 $(($response)) 60000
+				i=$((i+1))
+			done
+
 			rm -f $setupOptionsDir/device-ina219-*
 			i=1
 			while true; do
@@ -143,6 +154,11 @@ if [ $scriptAction == 'INSTALL' ] ; then
 		extInstall "https://github.com/chrisb2/pi_ina219" "pi_ina219" "master" "/"
 	fi
 
+	if [ -f "$setupOptionsDir/device-sht3x-1" ]; then
+		extInstall "https://github.com/Sensirion/python-i2c-driver" "python-i2c-driver" "master" "sensirion_i2c_driver"
+		extInstall "https://github.com/Sensirion/python-i2c-sht" "python-i2c-sht" "master" "sensirion_i2c_sht"
+	fi
+
 	installService $packageName
 fi
 
@@ -155,6 +171,8 @@ if [ $scriptAction == 'UNINSTALL' ] ; then
 	removeService $packageName
 	extUninstall "bme280"
 	extUninstall "smbus2"
+	extUninstall "sensirion_i2c_driver"
+	extUninstall "sensirion_i2c_sht"
 	removeLines "$configFile" true
 	removeLines "$modulesFile" true
 fi

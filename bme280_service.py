@@ -1,6 +1,6 @@
 from smbus2 import SMBus
 import bme280
-from service_utils import createService, SimpleService
+from service_utils import SimpleService
 
 
 def _safe_min(newValue, currentValue):

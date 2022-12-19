@@ -17,6 +17,10 @@ to be available by default, else manually add it.
 Temperature service, including humidity and pressure.
 Use with DVCC Shared Temperature Sense (STS) for battery temperature compensation.
 
+#### SHT3x
+
+Temperature service, including humidity.
+Use with DVCC Shared Temperature Sense (STS) for battery temperature compensation.
 
 #### INA219
 

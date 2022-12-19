@@ -1,5 +1,5 @@
 from ina219 import INA219
-from service_utils import createService, SimpleService
+from service_utils import SimpleService
 from collections import namedtuple
 import time
 

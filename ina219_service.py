@@ -21,15 +21,15 @@ class INA219Service(SimpleService):
         self.device = INA219(SHUNT_OHMS, busnum=self.i2cBus, address=self.i2cAddr, max_expected_amps=MAX_EXPECTED_AMPS)
         self.device.configure(voltage_range=INA219.RANGE_16V)
         self.device.sleep()
-        self.service.add_path("/Dc/0/Voltage", None)
-        self.service.add_path("/Dc/0/Current", None)
+        self.service.add_path("/Dc/0/Voltage", None, gettextcallback=lambda path,value: "{:.2f}V".format(value))
+        self.service.add_path("/Dc/0/Current", None, gettextcallback=lambda path,value: "{:.3f}A".format(value))
         self._configure_energy_history()
         self.service.add_path("/Alarms/LowVoltage", 0)
         self.service.add_path("/Alarms/HighVoltage", 0)
         self.service.add_path("/Alarms/LowTemperature", 0)
         self.service.add_path("/Alarms/HighTemperature", 0)
         self.add_settable_path("/CustomName", "", "", "")
-        self.service.add_path("/Dc/0/Power", None)
+        self.service.add_path("/Dc/0/Power", None, gettextcallback=lambda path,value: "{:.2f}W".format(value))
         self.lastPower = None
 
     def update(self):
@@ -52,7 +52,7 @@ class INA219DCLoadService(INA219Service):
         super().__init__(conn, i2cBus, i2cAddr, 'dcload')
 
     def _configure_energy_history(self):
-        self.service.add_path('/History/EnergyIn', 0)
+        self.service.add_path('/History/EnergyIn', 0, gettextcallback=lambda path,value: "{:.6f}kWh".format(value))
 
     def _increment_energy_usage(self, change):
         self.service['/History/EnergyIn'] += change
@@ -63,7 +63,7 @@ class INA219DCSourceService(INA219Service):
         super().__init__(conn, i2cBus, i2cAddr, 'dcsource')
 
     def _configure_energy_history(self):
-        self.service.add_path('/History/EnergyOut', 0)
+        self.service.add_path('/History/EnergyOut', 0, gettextcallback=lambda path,value: "{:.6f}kWh".format(value))
 
     def _increment_energy_usage(self, change):
         self.service['/History/EnergyOut'] += change

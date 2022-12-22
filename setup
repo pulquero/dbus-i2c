@@ -101,7 +101,7 @@ if [ $scriptAction == 'NONE' ] ; then
 				if [ -z "$response" ]; then
 					break
 				fi
-				createDeviceFile "$setupOptionsDir/device-bme280-$i" "bme280_service" "BME280Service" 1 $(($response)) 10000
+				createDeviceFile "$setupOptionsDir/device-bme280-$i" "bme280_service" "BME280Service" 1 $(($response)) 60000
 				i=$((i+1))
 			done
 

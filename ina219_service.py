@@ -34,7 +34,7 @@ class INA219Service(SimpleService):
 
     def update(self):
         self.device.wake()
-        self.service["/Dc/0/Voltage"] = round(self.device.voltage(), 3)
+        self.service["/Dc/0/Voltage"] = round(self._voltage(), 3)
         self.service["/Dc/0/Current"] = round(self.device.current()/1000, 3)
         power = self.device.power()/1000
         now = time.perf_counter()
@@ -43,7 +43,7 @@ class INA219Service(SimpleService):
 
         if self.lastPower is not None:
             # trapezium integration
-            self._increment_energy_usage(round(toKWh((self.lastPower.power + power)/2 * (now - self.lastPower.timestamp)), 6))
+            self._increment_energy_usage(round(toKWh((self.lastPower.power + power)/2 * (now - self.lastPower.timestamp)), 7))
         self.lastPower = PowerSample(power, now)
 
 
@@ -53,6 +53,9 @@ class INA219DCLoadService(INA219Service):
 
     def _configure_energy_history(self):
         self.service.add_path('/History/EnergyIn', 0, gettextcallback=lambda path,value: "{:.6f}kWh".format(value))
+
+    def _voltage(self):
+        return self.device.supply_voltage()
 
     def _increment_energy_usage(self, change):
         self.service['/History/EnergyIn'] += change
@@ -64,6 +67,9 @@ class INA219DCSourceService(INA219Service):
 
     def _configure_energy_history(self):
         self.service.add_path('/History/EnergyOut', 0, gettextcallback=lambda path,value: "{:.6f}kWh".format(value))
+
+    def _voltage(self):
+        return self.device.voltage()
 
     def _increment_energy_usage(self, change):
         self.service['/History/EnergyOut'] += change

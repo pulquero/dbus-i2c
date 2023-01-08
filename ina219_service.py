@@ -39,6 +39,10 @@ class INA219Service(SimpleService):
         self.service.add_path("/History/MaximumVoltage", 0, gettextcallback=VOLTAGE_TEXT)
         self.service.add_path("/History/MaximumCurrent", 0, gettextcallback=CURRENT_TEXT)
         self.service.add_path("/History/MaximumPower", 0, gettextcallback=POWER_TEXT)
+        self._local_values = {}
+        for path, dbusobj in self.service._dbusobjects.items():
+            if not dbusobj._writeable:
+                self._local_values[path] = self.service[path]
         self.lastPower = None
 
     def update(self):
@@ -49,17 +53,21 @@ class INA219Service(SimpleService):
         now = time.perf_counter()
         self.device.sleep()
 
-        self.service["/Dc/0/Voltage"] = voltage
-        self.service["/Dc/0/Current"] = current
-        self.service["/Dc/0/Power"] = power
-        self.service["/History/MaximumVoltage"] = max(voltage, self.service["/History/MaximumVoltage"])
-        self.service["/History/MaximumCurrent"] = max(current, self.service["/History/MaximumCurrent"])
-        self.service["/History/MaximumPower"] = max(power, self.service["/History/MaximumPower"])
+        self._local_values["/Dc/0/Voltage"] = voltage
+        self._local_values["/Dc/0/Current"] = current
+        self._local_values["/Dc/0/Power"] = power
+        self._local_values["/History/MaximumVoltage"] = max(voltage, self._local_values["/History/MaximumVoltage"])
+        self._local_values["/History/MaximumCurrent"] = max(current, self._local_values["/History/MaximumCurrent"])
+        self._local_values["/History/MaximumPower"] = max(power, self._local_values["/History/MaximumPower"])
 
         if self.lastPower is not None:
             # trapezium integration
             self._increment_energy_usage(toKWh((self.lastPower.power + power)/2 * (now - self.lastPower.timestamp)))
         self.lastPower = PowerSample(power, now)
+
+    def publish(self):
+        for k,v in self._local_values.items():
+            self.service[k] = v
 
 
 class INA219DCLoadService(INA219Service):
@@ -73,7 +81,7 @@ class INA219DCLoadService(INA219Service):
         return self.device.supply_voltage()
 
     def _increment_energy_usage(self, change):
-        self.service['/History/EnergyIn'] += change
+        self._local_values['/History/EnergyIn'] += change
 
 
 class INA219DCSourceService(INA219Service):
@@ -87,4 +95,4 @@ class INA219DCSourceService(INA219Service):
         return self.device.voltage()
 
     def _increment_energy_usage(self, change):
-        self.service['/History/EnergyOut'] += change
+        self._local_values['/History/EnergyOut'] += change

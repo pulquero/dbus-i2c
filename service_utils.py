@@ -1,6 +1,7 @@
 from script_utils import VERSION
 from vedbus import VeDbusService
 from settingsdevice import SettingsDevice
+import logging
 
 BASE_DEVICE_INSTANCE_ID = 1024
 PRODUCT_ID = 0
@@ -36,6 +37,7 @@ def getDeviceInstance(i2cBusNum, i2cAddr):
 
 class SimpleService:
     def __init__(self, conn, i2cBus, i2cAddr, serviceType, deviceName):
+        self.logger = logging.getLogger(f"dbus-i2c.{i2cBus}.{i2cAddr:#04x}.{deviceName}")
         self.serviceType = serviceType
         self.i2cBus = i2cBus
         self.i2cAddr = i2cAddr

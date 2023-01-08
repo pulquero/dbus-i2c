@@ -42,9 +42,19 @@ def createUpdateWrapper(device):
         try:
             device.update()
         except:
-            logger.exception(f"Failed to update {device}")
+            device.logger.exception("Failed to update")
         return True
     return updateWrapper
+
+
+def createPublishWrapper(device):
+    def publishWrapper():
+        try:
+            device.publish()
+        except:
+            device.logger.exception("Failed to publish")
+        return True
+    return publishWrapper
 
 
 def initDBusServices():
@@ -63,9 +73,13 @@ def initDBusServices():
         updater()
         if updateInterval <= 1000:
             GLib.timeout_add(updateInterval, updater)
+            if hasattr(device, 'publish'):
+                publisher = createPublishWrapper(device)
+                publisher()
+                GLib.timeout_add_seconds(1, publisher)
         else:
             GLib.timeout_add_seconds(updateInterval//1000, updater)
-        logger.info("Registered {} on bus {} at address {:#04x}".format(device.deviceName, i2cBus, i2cAddr))
+        device.logger.info("Registered")
 
 
 def main():

@@ -61,7 +61,10 @@ def initDBusServices():
         device = constructor(dbusConnection(), i2cBus, i2cAddr)
         updater = createUpdateWrapper(device)
         updater()
-        GLib.timeout_add(updateInterval, updater)
+        if updateInterval <= 1000:
+            GLib.timeout_add(updateInterval, updater)
+        else:
+            GLib.timeout_add_seconds(updateInterval//1000, updater)
         logger.info("Registered {} on bus {} at address {:#04x}".format(device.deviceName, i2cBus, i2cAddr))
 
 

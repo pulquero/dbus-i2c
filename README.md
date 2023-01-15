@@ -6,8 +6,8 @@ A set of DBus services for I2C devices.
 
 # Install
 
-Install [SetupHelper](https://github.com/kwindrem/SetupHelper), use [this version](https://github.com/pulquero/SetupHelper) if you want this package
-to be available by default, else manually add it.
+Install [SetupHelper](https://github.com/kwindrem/SetupHelper),
+you can find this package listed in the available packages to install.
 
 
 # Supported devices

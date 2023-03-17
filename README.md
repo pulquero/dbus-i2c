@@ -8,7 +8,7 @@ A set of DBus services for I2C devices.
 
 Install [SetupHelper](https://github.com/kwindrem/SetupHelper),
 you can find this package listed in the available packages to install.
-
+Then, run `/data/dbus-i2c/setup`.
 
 # Supported devices
 

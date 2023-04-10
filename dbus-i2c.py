@@ -61,25 +61,28 @@ def initDBusServices():
     setupOptions = Path("/data/setupOptions/dbus-i2c")
     for devicePath in setupOptions.glob("device-*"):
         logger.info(f"Found I2C device file {devicePath}")
-        with devicePath.open() as f:
-            deviceConfig = json.load(f)
-        deviceModule = importlib.import_module(deviceConfig['module'])
-        constructor = getattr(deviceModule, deviceConfig['class'])
-        i2cBus = deviceConfig['bus']
-        i2cAddr = deviceConfig['address']
-        updateInterval = deviceConfig['updateInterval']
-        device = constructor(dbusConnection(), i2cBus, i2cAddr)
-        updater = createUpdateWrapper(device)
-        updater()
-        if updateInterval <= 1000:
-            GLib.timeout_add(updateInterval, updater)
-            if hasattr(device, 'publish'):
-                publisher = createPublishWrapper(device)
-                publisher()
-                GLib.timeout_add_seconds(1, publisher)
-        else:
-            GLib.timeout_add_seconds(updateInterval//1000, updater)
-        device.logger.info("Registered")
+        try:
+            with devicePath.open() as f:
+                deviceConfig = json.load(f)
+            deviceModule = importlib.import_module(deviceConfig['module'])
+            constructor = getattr(deviceModule, deviceConfig['class'])
+            i2cBus = deviceConfig['bus']
+            i2cAddr = deviceConfig['address']
+            updateInterval = deviceConfig['updateInterval']
+            device = constructor(dbusConnection(), i2cBus, i2cAddr)
+            updater = createUpdateWrapper(device)
+            updater()
+            if updateInterval <= 1000:
+                GLib.timeout_add(updateInterval, updater)
+                if hasattr(device, 'publish'):
+                    publisher = createPublishWrapper(device)
+                    publisher()
+                    GLib.timeout_add_seconds(1, publisher)
+            else:
+                GLib.timeout_add_seconds(updateInterval//1000, updater)
+            device.logger.info("Registered")
+        except json.JSONDecodeError:
+            logger.warning("Ignoring invalid JSON file")
 
 
 def main():

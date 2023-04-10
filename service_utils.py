@@ -1,6 +1,7 @@
 from script_utils import VERSION
 from vedbus import VeDbusService
 from settingsdevice import SettingsDevice
+from settableservice import SettableService
 import logging
 
 BASE_DEVICE_INSTANCE_ID = 1024
@@ -19,10 +20,6 @@ def createService(conn, serviceType, i2cBusNum, i2cAddr, file, deviceName):
     return service
 
 
-def getSettingsPath(serviceType, i2cBusNum, i2cAddr, subPath):
-    return f"/Settings/{serviceType.capitalize()}/{getDeviceAddress(i2cBusNum, i2cAddr)}{subPath}"
-
-
 def getServiceName(serviceType, i2cBusNum, i2cAddr):
     return f"com.victronenergy.{serviceType}.{getDeviceAddress(i2cBusNum, i2cAddr)}"
 
@@ -35,8 +32,9 @@ def getDeviceInstance(i2cBusNum, i2cAddr):
     return BASE_DEVICE_INSTANCE_ID + i2cBusNum * 128 + i2cAddr
 
 
-class SimpleService:
+class SimpleI2CService(SettableService):
     def __init__(self, conn, i2cBus, i2cAddr, serviceType, deviceName):
+        super().__init__()
         self.logger = logging.getLogger(f"dbus-i2c.{i2cBus}.{i2cAddr:#04x}.{deviceName}")
         self.serviceType = serviceType
         self.i2cBus = i2cBus
@@ -44,36 +42,9 @@ class SimpleService:
         self.deviceName = deviceName
         self.service = createService(conn, self.serviceType, self.i2cBus, self.i2cAddr,
             __file__, self.deviceName)
-        self.supportedSettings = {}
-        self.settablePaths = {}
+        self.add_settable_path("/CustomName", "", 0, 0)
         self._configure_service()
-        self.settings = SettingsDevice(conn, self.supportedSettings, self._setting_changed)
-        self.initializingSettings = True
-        for settingName in self.supportedSettings.keys():
-            path = self.settablePaths[settingName]
-            self.service[path] = self.settings[settingName]
-        self.initializingSettings = False
-
-    def add_settable_path(self, subPath, initialValue, minValue, maxValue):
-        settingName = subPath[1:].lower()
-        self.service.add_path(subPath, initialValue, writeable=True, onchangecallback=lambda path, newValue: self._value_changed(settingName, newValue))
-        self.supportedSettings[settingName] = [
-            getSettingsPath(self.serviceType, self.i2cBus, self.i2cAddr, subPath),
-            initialValue,
-            minValue,
-            maxValue
-        ]
-        self.settablePaths[settingName] = subPath
-
-    def _value_changed(self, settingName, newValue):
-        # ignore events generated during initialization
-        if not self.initializingSettings:
-            # this should trigger a _setting_changed() call
-            self.settings[settingName] = newValue
-
-    def _setting_changed(self, settingName, oldValue, newValue):
-        path = self.settablePaths[settingName]
-        self.service[path] = newValue
+        self._init_settings(conn)
 
     def __str__(self):
         return "{}@{}/{:#04x}".format(self.deviceName, self.i2cBus, self.i2cAddr)

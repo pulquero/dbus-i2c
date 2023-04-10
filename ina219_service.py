@@ -1,5 +1,5 @@
 from ina219 import INA219
-from service_utils import SimpleService
+from service_utils import SimpleI2CService
 from collections import namedtuple
 import time
 
@@ -19,7 +19,7 @@ POWER_TEXT = lambda path,value: "{:.2f}W".format(value)
 ENERGY_TEXT = lambda path,value: "{:.6f}kWh".format(value)
 
 
-class INA219Service(SimpleService):
+class INA219Service(SimpleI2CService):
     def __init__(self, conn, i2cBus, i2cAddr, serviceType):
         super().__init__(conn, i2cBus, i2cAddr, serviceType, 'INA219')
 
@@ -34,7 +34,6 @@ class INA219Service(SimpleService):
         self.service.add_path("/Alarms/HighVoltage", 0)
         self.service.add_path("/Alarms/LowTemperature", 0)
         self.service.add_path("/Alarms/HighTemperature", 0)
-        self.add_settable_path("/CustomName", "", "", "")
         self.service.add_path("/Dc/0/Power", None, gettextcallback=POWER_TEXT)
         self.service.add_path("/History/MaximumVoltage", 0, gettextcallback=VOLTAGE_TEXT)
         self.service.add_path("/History/MaximumCurrent", 0, gettextcallback=CURRENT_TEXT)

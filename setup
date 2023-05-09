@@ -97,7 +97,7 @@ if [ $scriptAction == 'NONE' ] ; then
 			rm -f $setupOptionsDir/device-bme280-*
 			i=1
 			while true; do
-				prompt "If you have a BME280, enter its I2C address or press enter to finish: [0x76/0x77] "
+				prompt "BME280 (number $i): Enter I2C address or press enter to finish: [0x76/0x77] "
 				if [ -z "$response" ]; then
 					break
 				fi
@@ -108,7 +108,7 @@ if [ $scriptAction == 'NONE' ] ; then
 			rm -f $setupOptionsDir/device-sht3x-*
 			i=1
 			while true; do
-				prompt "If you have a SHT3x, enter its I2C address or press enter to finish: [0x44/0x45] "
+				prompt "SHT3x (number $i): Enter I2C address or press enter to finish: [0x44/0x45] "
 				if [ -z "$response" ]; then
 					break
 				fi
@@ -119,7 +119,7 @@ if [ $scriptAction == 'NONE' ] ; then
 			rm -f $setupOptionsDir/device-ina219-*
 			i=1
 			while true; do
-				prompt "If you have an INA219, enter its I2C address or press enter to finish: [0x40/0x41/0x42/0x44/0x45] "
+				prompt "INA219 (number $i): Enter I2C address or press enter to finish: [0x40/0x41/0x42/0x44/0x45] "
 				if [ -z "$response" ]; then
 					break
 				fi

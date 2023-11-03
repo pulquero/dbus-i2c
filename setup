@@ -25,7 +25,12 @@ createDeviceFile ()
 
 createDeviceFileINA219 ()
 {
-	echo "{\"module\": \"$2\", \"class\": \"$3\", \"bus\": $4, \"address\": $5, \"updateInterval\": $6, \"maxExpectedCurrent\": 2}" > "$1"
+	echo "{\"module\": \"$2\", \"class\": \"$3\", \"bus\": $4, \"address\": $5, \"updateInterval\": $6, \"shuntResistance\": 0.1, \"maxExpectedCurrent\": 2}" > "$1"
+}
+
+createDeviceFileINA226 ()
+{
+	echo "{\"module\": \"$2\", \"class\": \"$3\", \"bus\": $4, \"address\": $5, \"updateInterval\": $6, \"shuntResistance\": $7, \"maxExpectedCurrent\": $8}" > "$1"
 }
 
 insertLines ()
@@ -132,6 +137,17 @@ if [ $scriptAction == 'NONE' ] ; then
 				i=$((i+1))
 			done
 
+			rm -f $setupOptionsDir/device-ina226-*
+			i=1
+			while true; do
+				prompt "INA226 (number $i): Enter I2C address or press enter to finish: [0x40/0x41/0x42/0x44/0x45] "
+				if [ -z "$response" ]; then
+					break
+				fi
+				createDeviceFileINA226 "$setupOptionsDir/device-ina226-$i" "ina226_service" "INA226DCLoadService" 1 $(($response)) 1000 0.1 0.8
+				i=$((i+1))
+			done
+
 		fi
 	fi
 fi
@@ -157,6 +173,11 @@ if [ $scriptAction == 'INSTALL' ] ; then
 		extInstall "https://github.com/adafruit/Adafruit_Python_GPIO" "Adafruit_Python_GPIO" "master" "Adafruit_GPIO"
 		extInstall "https://github.com/adafruit/Adafruit_Python_PureIO" "Adafruit_Python_PureIO" "main" "Adafruit_PureIO"
 		extInstall "https://github.com/chrisb2/pi_ina219" "pi_ina219" "master" "/"
+	fi
+
+	if [ -f "$setupOptionsDir/device-ina226-1" ]; then
+		extInstall "https://github.com/kplindegaard/smbus2" "smbus2" "master" "smbus2"
+		extInstall "https://github.com/e71828/pi_ina226" "pi_ina226" "main" "/"
 	fi
 
 	if [ -f "$setupOptionsDir/device-sht3x-1" ]; then

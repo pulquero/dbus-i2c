@@ -71,7 +71,12 @@ def initDBusServices():
             i2cBus = deviceConfig['bus']
             i2cAddr = deviceConfig['address']
             updateInterval = deviceConfig['updateInterval']
-            device = constructor(dbusConnection(), i2cBus, i2cAddr)
+            if deviceConfig['module'] == 'ina226_service':
+                shuntRes = deviceConfig['shuntRes']
+                maxExpCur = deviceConfig['maxExpCur']
+                device = constructor(dbusConnection(), i2cBus, i2cAddr, shuntRes, maxExpCur)
+            else:
+                device = constructor(dbusConnection(), i2cBus, i2cAddr)
             updater = createUpdateWrapper(device)
             updater()
             if updateInterval <= 1000:

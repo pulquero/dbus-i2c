@@ -23,6 +23,11 @@ createDeviceFile ()
 	echo "{\"module\": \"$2\", \"class\": \"$3\", \"bus\": $4, \"address\": $5, \"updateInterval\": $6}" > "$1"
 }
 
+createDeviceFileINA219 ()
+{
+	echo "{\"module\": \"$2\", \"class\": \"$3\", \"bus\": $4, \"address\": $5, \"updateInterval\": $6, \"maxExpectedCurrent\": 2}" > "$1"
+}
+
 insertLines ()
 {
 	if [ $(grep -c "$2" "$1") == 0 ]; then
@@ -123,7 +128,7 @@ if [ $scriptAction == 'NONE' ] ; then
 				if [ -z "$response" ]; then
 					break
 				fi
-				createDeviceFile "$setupOptionsDir/device-ina219-$i" "ina219_service" "INA219DCLoadService" 1 $(($response)) 1000
+				createDeviceFileINA219 "$setupOptionsDir/device-ina219-$i" "ina219_service" "INA219DCLoadService" 1 $(($response)) 1000
 				i=$((i+1))
 			done
 

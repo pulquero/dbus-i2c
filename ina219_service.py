@@ -20,11 +20,12 @@ ENERGY_TEXT = lambda path,value: "{:.6f}kWh".format(value)
 
 
 class INA219Service(SimpleI2CService):
-    def __init__(self, conn, i2cBus, i2cAddr, serviceType):
+    def __init__(self, conn, i2cBus, i2cAddr, serviceType, maxExpectedCurrent=MAX_EXPECTED_AMPS):
         super().__init__(conn, i2cBus, i2cAddr, serviceType, 'INA219')
+        self.maxExpectedCurrent = maxExpectedCurrent
 
     def _configure_service(self):
-        self.device = INA219(SHUNT_OHMS, busnum=self.i2cBus, address=self.i2cAddr, max_expected_amps=MAX_EXPECTED_AMPS)
+        self.device = INA219(SHUNT_OHMS, busnum=self.i2cBus, address=self.i2cAddr, max_expected_amps=self.maxExpectedCurrent)
         self.device.configure(voltage_range=INA219.RANGE_16V)
         self.device.sleep()
         self.service.add_path("/Dc/0/Voltage", None, gettextcallback=VOLTAGE_TEXT)

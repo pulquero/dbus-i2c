@@ -10,7 +10,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
 from pathlib import Path
 import json
-import importlib
+import device_utils
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -66,12 +66,7 @@ def initDBusServices():
         try:
             with devicePath.open() as f:
                 deviceConfig = json.load(f)
-            deviceModule = importlib.import_module(deviceConfig['module'])
-            constructor = getattr(deviceModule, deviceConfig['class'])
-            i2cBus = deviceConfig['bus']
-            i2cAddr = deviceConfig['address']
-            updateInterval = deviceConfig['updateInterval']
-            device = constructor(dbusConnection(), i2cBus, i2cAddr)
+            device = device_utils.createDevice(dbusConnection(), deviceConfig)
             updater = createUpdateWrapper(device)
             updater()
             if updateInterval <= 1000:

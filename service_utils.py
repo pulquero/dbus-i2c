@@ -33,7 +33,7 @@ def getDeviceInstance(i2cBusNum, i2cAddr):
 
 
 class SimpleI2CService(SettableService):
-    def __init__(self, conn, i2cBus, i2cAddr, serviceType, deviceName):
+    def __init__(self, conn, i2cBus, i2cAddr, serviceType, deviceName, **kwargs):
         super().__init__()
         self.logger = logging.getLogger(f"dbus-i2c.{i2cBus}.{i2cAddr:#04x}.{deviceName}")
         self.serviceType = serviceType
@@ -43,7 +43,7 @@ class SimpleI2CService(SettableService):
         self.service = createService(conn, self.serviceType, self.i2cBus, self.i2cAddr,
             __file__, self.deviceName)
         self.add_settable_path("/CustomName", "", 0, 0)
-        self._configure_service()
+        self._configure_service(**kwargs)
         self._init_settings(conn)
 
     def __str__(self):

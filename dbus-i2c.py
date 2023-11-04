@@ -66,6 +66,7 @@ def initDBusServices():
         try:
             with devicePath.open() as f:
                 deviceConfig = json.load(f)
+            updateInterval = deviceConfig.pop('updateInterval')
             device = device_utils.createDevice(dbusConnection(), deviceConfig)
             updater = createUpdateWrapper(device)
             updater()

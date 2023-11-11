@@ -26,3 +26,8 @@ Use with DVCC Shared Temperature Sense (STS) for battery temperature compensatio
 
 DC load/source service.
 Use with [DC System Aggregator](https://github.com/pulquero/DCSystemAggregator) to monitor all your loads/sources.
+
+#### INA226
+
+DC load/source service.
+Use with [DC System Aggregator](https://github.com/pulquero/DCSystemAggregator) to monitor all your loads/sources.

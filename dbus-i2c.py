@@ -67,6 +67,7 @@ def initDBusServices():
             with devicePath.open() as f:
                 deviceConfig = json.load(f)
             updateInterval = deviceConfig.pop('updateInterval')
+            publishInterval = deviceConfig.pop('publishInterval', 1000)
             device = device_utils.createDevice(dbusConnection(), deviceConfig)
             updater = createUpdateWrapper(device)
             updater()
@@ -75,7 +76,7 @@ def initDBusServices():
                 if hasattr(device, 'publish'):
                     publisher = createPublishWrapper(device)
                     publisher()
-                    GLib.timeout_add_seconds(1, publisher)
+                    GLib.timeout_add_seconds(max(publishInterval//1000, 1), publisher)
             else:
                 GLib.timeout_add_seconds(updateInterval//1000, updater)
             device.logger.info("Registered")

@@ -25,8 +25,8 @@ POWER_TEXT = lambda path,value: "{:.2f}W".format(value)
 ENERGY_TEXT = lambda path,value: "{:.6f}kWh".format(value)
 
 
-def createService(conn, serviceType, i2cBusNum, i2cAddr, file, deviceName):
-    service = VeDbusService(getServiceName(serviceType, i2cBusNum, i2cAddr), conn)
+def _createService(conn, serviceType, i2cBusNum, i2cAddr, file, deviceName):
+    service = VeDbusService(getServiceName(serviceType, i2cBusNum, i2cAddr), conn, register=False)
     service.add_mandatory_paths(file, VERSION, 'I2C',
             getDeviceInstance(i2cBusNum, i2cAddr), PRODUCT_ID, deviceName, FIRMWARE_VERSION, HARDWARE_VERSION, CONNECTED)
     service.add_path("/I2C/Bus", i2cBusNum)
@@ -54,11 +54,12 @@ class SimpleI2CService(SettableService):
         self.i2cBus = i2cBus
         self.i2cAddr = i2cAddr
         self.deviceName = deviceName
-        self.service = createService(conn, self.serviceType, self.i2cBus, self.i2cAddr,
+        self.service = _createService(conn, self.serviceType, self.i2cBus, self.i2cAddr,
             __file__, self.deviceName)
         self.add_settable_path("/CustomName", "", 0, 0)
         self._configure_service(**kwargs)
         self._init_settings(conn)
+        self.service.register()
 
     def __str__(self):
         return "{}@{}/{:#04x}".format(self.deviceName, self.i2cBus, self.i2cAddr)

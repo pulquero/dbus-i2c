@@ -182,7 +182,9 @@ if [ $scriptAction == 'INSTALL' ] ; then
 
 	if [ -f "$setupOptionsDir/device-sht3x-1" ]; then
 		extInstall "https://github.com/Sensirion/python-i2c-driver" "python-i2c-driver" "master" "sensirion_i2c_driver"
-		extInstall "https://github.com/Sensirion/python-i2c-sht" "python-i2c-sht" "master" "sensirion_i2c_sht"
+		extInstall "https://github.com/Sensirion/python-driver-adapters" "python-driver-adapters" "master" "sensirion_driver_adapters"
+		extInstall "https://github.com/Sensirion/python-driver-support-types" "python-driver-support-types" "master" "sensirion_driver_support_types"
+		extInstall "https://github.com/Sensirion/python-i2c-sht3x" "python-i2c-sht3x" "master" "sensirion_i2c_sht3x"
 	fi
 
 	installService $packageName

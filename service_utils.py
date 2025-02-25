@@ -25,15 +25,6 @@ POWER_TEXT = lambda path,value: "{:.2f}W".format(value)
 ENERGY_TEXT = lambda path,value: "{:.6f}kWh".format(value)
 
 
-def _createService(conn, serviceType, i2cBusNum, i2cAddr, file, deviceName):
-    service = VeDbusService(getServiceName(serviceType, i2cBusNum, i2cAddr), conn, register=False)
-    service.add_mandatory_paths(file, VERSION, 'I2C',
-            getDeviceInstance(i2cBusNum, i2cAddr), PRODUCT_ID, deviceName, FIRMWARE_VERSION, HARDWARE_VERSION, CONNECTED)
-    service.add_path("/I2C/Bus", i2cBusNum)
-    service.add_path("/I2C/Address", "{:#04x}".format(i2cAddr))
-    return service
-
-
 def getServiceName(serviceType, i2cBusNum, i2cAddr):
     return f"com.victronenergy.{serviceType}.{getDeviceAddress(i2cBusNum, i2cAddr)}"
 
@@ -54,11 +45,15 @@ class SimpleI2CService(SettableService):
         self.i2cBus = i2cBus
         self.i2cAddr = i2cAddr
         self.deviceName = deviceName
-        self.service = _createService(conn, self.serviceType, self.i2cBus, self.i2cAddr,
-            __file__, self.deviceName)
+        self.service = VeDbusService(getServiceName(serviceType, i2cBus, i2cAddr), conn, register=False)
         self.add_settable_path("/CustomName", "", 0, 0)
         self._configure_service(**kwargs)
         self._init_settings(conn)
+        di = self.register_device_instance(serviceType, getDeviceAddress(i2cBus, i2cAddr), getDeviceInstance(i2cBus, i2cAddr))
+        self.service.add_mandatory_paths(__file__, VERSION, 'I2C',
+                di, PRODUCT_ID, deviceName, FIRMWARE_VERSION, HARDWARE_VERSION, CONNECTED)
+        self.service.add_path("/I2C/Bus", i2cBus)
+        self.service.add_path("/I2C/Address", "{:#04x}".format(i2cAddr))
         self.service.register()
 
     def __str__(self):

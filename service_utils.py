@@ -56,6 +56,10 @@ class SimpleI2CService(SettableService):
         self.service.add_path("/I2C/Address", "{:#04x}".format(i2cAddr))
         self.service.register()
 
+    def error(self, msg):
+        self.logger.exception(msg)
+        self.service["/Connected"] = 0
+
     def __str__(self):
         return "{}@{}/{:#04x}".format(self.deviceName, self.i2cBus, self.i2cAddr)
 

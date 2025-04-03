@@ -43,7 +43,7 @@ def createUpdateWrapper(device):
             device.update()
             return True
         except:
-            device.logger.exception("Failed to update")
+            device.error("Failed to update")
             return False
     return updateWrapper
 
@@ -54,7 +54,7 @@ def createPublishWrapper(device):
             device.publish()
             return True
         except:
-            device.logger.exception("Failed to publish")
+            device.error("Failed to publish")
             return False
     return publishWrapper
 

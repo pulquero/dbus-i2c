@@ -31,3 +31,26 @@ Use with [DC System Aggregator](https://github.com/pulquero/DCSystemAggregator) 
 
 DC load/source service.
 Use with [DC System Aggregator](https://github.com/pulquero/DCSystemAggregator) to monitor all your loads/sources.
+
+
+# Home Assistant MQTT integration
+
+### Example YAML
+
+	- sensor:
+	    unique_id: "pv_power"
+	    object_id: "solar_charger_power"
+	    name: "PV power"
+	    device_class: power
+	    unit_of_measurement: "W"
+	    state_topic: "N/xxxxxxxxxxxx/solarcharger/xxx/Yield/Power"
+	    value_template: "{{ value_json.value | float(0) | round(2) }}"
+	    force_update: true
+	    availability_topic: "N/xxxxxxxxxxxx/solarcharger/xxx/Connected"
+	    availability_template: "{{ value_json.value }}"
+	    payload_available: 1
+	    payload_not_available: 0
+	    device:
+	      identifiers: "com.victronenergy.solarcharger.ttyUSB0"
+	      name: "Solar charger"
+	      model: "SmartSolar Charger MPPT 100/30"

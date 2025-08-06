@@ -17,6 +17,12 @@ Then, run `/data/dbus-i2c/setup`.
 Temperature service, including humidity and pressure.
 Use with DVCC Shared Temperature Sense (STS) for battery temperature compensation.
 
+#### DPS310
+
+Temperature service, including pressure.
+Use with DVCC Shared Temperature Sense (STS) for battery temperature compensation.
+Adaptable to other DPS devices, but not tested with anything else than a DPS310
+
 #### SHT3x
 
 Temperature service, including humidity.

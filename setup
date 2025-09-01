@@ -115,6 +115,19 @@ if [ $scriptAction == 'NONE' ] ; then
 				i=$((i+1))
 			done
 
+                        
+                        rm -f $setupOptionsDir/device-dps310-*
+                        i=1
+                        while true; do
+                                prompt "DPS310 (number $i): Enter I2C address or press enter to finish (e.g. 0x76/0x77): "
+                                if [ -z "$response" ]; then
+                                        break
+                                fi
+                                createDeviceFile "$setupOptionsDir/device-dps310-$i" "dps310_service" "DPS310Service" 1 $(($response)) 60000
+                                i=$((i+1))
+                        done
+
+
 			rm -f $setupOptionsDir/device-sht3x-*
 			i=1
 			while true; do
@@ -167,6 +180,11 @@ if [ $scriptAction == 'INSTALL' ] ; then
 	if [ -f "$setupOptionsDir/device-bme280-1" ]; then
 		extInstall "https://github.com/kplindegaard/smbus2" "smbus2"
 		extInstall "https://github.com/pulquero/bme280" "bme280"
+	fi
+
+        if [ -f "$setupOptionsDir/device-dps310-1" ]; then
+		extInstall "https://github.com/kplindegaard/smbus2" "smbus2"
+		extInstall "https://github.com/pulquero/RaspberryPi_DPS" "RaspberryPi_DPS" "master" "/"	
 	fi
 
 	if [ -f "$setupOptionsDir/device-ina219-1" ]; then

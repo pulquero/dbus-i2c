@@ -25,7 +25,7 @@ class DPS310Service(SimpleI2CService):
 
     def update(self):
         with SMBus(self.i2cBus) as bus:
-            dps310 = DPS(bus, self.i2cAddr)
+            dps310 = DPS.DPS(bus, self.i2cAddr)
             scaled_p = dps310.calcScaledPressure()
             scaled_t = dps310.calcScaledTemperature()
             p = dps310.calcCompPressure(scaled_p, scaled_t)

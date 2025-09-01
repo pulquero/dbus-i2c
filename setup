@@ -184,10 +184,7 @@ if [ $scriptAction == 'INSTALL' ] ; then
 
         if [ -f "$setupOptionsDir/device-dps310-1" ]; then
 		extInstall "https://github.com/kplindegaard/smbus2" "smbus2"
-		extInstall "https://github.com/Infineon/RaspberryPi_DPS" "RaspberryPi_DPS" "master" "/"	
-                sed -e "s/import smbus/import smbus2/" -e "s/smbus\./smbus2./" < ext/DPS.py > /tmp/DPS.py
-                mv /tmp/DPS.py ext/
-
+		extInstall "https://github.com/pulquero/RaspberryPi_DPS" "RaspberryPi_DPS" "master" "/"	
 	fi
 
 	if [ -f "$setupOptionsDir/device-ina219-1" ]; then

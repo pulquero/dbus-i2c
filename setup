@@ -104,6 +104,7 @@ if [ $scriptAction == 'NONE' ] ; then
 		yesNoPrompt "Reconfigure? [y/n] "
 		if [ "$yesResponse" == 'true' ]; then
 
+			#### BME280 ####
 			rm -f $setupOptionsDir/device-bme280-*
 			i=1
 			while true; do
@@ -115,7 +116,7 @@ if [ $scriptAction == 'NONE' ] ; then
 				i=$((i+1))
 			done
 
-                        
+                        #### DPS310 ####
                         rm -f $setupOptionsDir/device-dps310-*
                         i=1
                         while true; do
@@ -127,7 +128,7 @@ if [ $scriptAction == 'NONE' ] ; then
                                 i=$((i+1))
                         done
 
-
+			#### SHT3x ####
 			rm -f $setupOptionsDir/device-sht3x-*
 			i=1
 			while true; do
@@ -139,6 +140,7 @@ if [ $scriptAction == 'NONE' ] ; then
 				i=$((i+1))
 			done
 
+			#### INA219 ####
 			rm -f $setupOptionsDir/device-ina219-*
 			i=1
 			while true; do
@@ -150,6 +152,7 @@ if [ $scriptAction == 'NONE' ] ; then
 				i=$((i+1))
 			done
 
+			#### INA226 ####
 			rm -f $setupOptionsDir/device-ina226-*
 			i=1
 			while true; do
@@ -160,6 +163,13 @@ if [ $scriptAction == 'NONE' ] ; then
 				createDeviceFileINA226 "$setupOptionsDir/device-ina226-$i" "ina226_service" "INA226DCLoadService" 1 $(($response)) 1000 0.1 0.8
 				i=$((i+1))
 			done
+
+			#### Lynx distributors ####
+			rm -f $setupOptionsDir/device-lynx
+			prompt "Lynx distributors: Enter I2C base address or press enter to finish (e.g. 0x08): "
+			if [ -n "$response" ]; then
+				createDeviceFile "$setupOptionsDir/device-lynx" "lynx_distributor_service" "LynxDistributorService" 1 $(($response)) 60000
+			fi
 
 		fi
 	fi

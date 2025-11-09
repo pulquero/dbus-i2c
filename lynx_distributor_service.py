@@ -45,8 +45,10 @@ class LynxDistributorService(SimpleI2CService):
         for distributor, fuses in self.distributors.items():
             addr = self.i2cAddr + (ord(distributor) - ord('A'))
 
+            self.logger.info(f"debug: addr {addr}")
             with SMBus(self.i2cBus) as bus:
                 state = bus.read_byte(addr)
+            self.logger.info(f"debug: state {state}")
 
             no_bus_power = (state & 0b00000010)
             self.service[f"/Distributor/{distributor}/Status"] = DISTRIBUTOR_STATE_NO_BUS_POWER if no_bus_power else DISTRIBUTOR_STATE_CONNECTED

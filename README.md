@@ -38,6 +38,10 @@ Use with [DC System Aggregator](https://github.com/pulquero/DCSystemAggregator) 
 DC load/source service.
 Use with [DC System Aggregator](https://github.com/pulquero/DCSystemAggregator) to monitor all your loads/sources.
 
+#### Lynx distributors
+
+See [dbus-lynx-distributor](https://github.com/twam/dbus-lynx-distributor) for details.
+
 
 # Home Assistant MQTT integration
 

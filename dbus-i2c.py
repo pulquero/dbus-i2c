@@ -67,18 +67,18 @@ def initDBusServices():
             with devicePath.open() as f:
                 deviceConfig = json.load(f)
             updateInterval = deviceConfig.pop('updateInterval')
-            publishInterval = deviceConfig.pop('publishInterval', 1000)
+            publishInterval = deviceConfig.pop('publishInterval', max(updateInterval, 1000))
             device = device_utils.createDevice(dbusConnection(), deviceConfig)
             updater = createUpdateWrapper(device)
             updater()
             if updateInterval <= 1000:
                 GLib.timeout_add(updateInterval, updater)
-                if hasattr(device, 'publish'):
-                    publisher = createPublishWrapper(device)
-                    publisher()
-                    GLib.timeout_add_seconds(max(publishInterval//1000, 1), publisher)
             else:
                 GLib.timeout_add_seconds(updateInterval//1000, updater)
+            if hasattr(device, 'publish'):
+                publisher = createPublishWrapper(device)
+                publisher()
+                GLib.timeout_add_seconds(max(publishInterval//1000, 1), publisher)
             device.logger.info("Registered")
         except json.JSONDecodeError:
             logger.warning("Ignoring invalid JSON file")

@@ -15,6 +15,14 @@ CONNECTED = 1
 PowerSample = namedtuple('PowerSample', ['power', 'timestamp'])
 
 
+def _safe_min(newValue, currentValue):
+    return min(newValue, currentValue) if currentValue else newValue
+
+
+def _safe_max(newValue, currentValue):
+    return max(newValue, currentValue) if currentValue else newValue
+
+
 def toKWh(joules):
     return joules/3600/1000
 
@@ -62,6 +70,36 @@ class SimpleI2CService(SettableService):
 
     def __str__(self):
         return "{}@{}/{:#04x}".format(self.deviceName, self.i2cBus, self.i2cAddr)
+
+
+class TemperatureService(SimpleI2CService):
+    TYPE_BATTERY = 0
+    TYPE_FRIDGE = 1
+    TYPE_GENERIC = 2
+    TYPE_ROOM = 3
+    TYPE_OUTDOOR = 4
+    TYPE_WATER_HEATER = 5
+    TYPE_FREEZER = 6
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def _configure_service(self):
+        self.service.add_path("/Temperature", None)
+        # default type is battery
+        self.add_settable_path("/TemperatureType", TemperatureService.TYPE_BATTERY, 0, 6)
+        self.service.add_path("/History/MinimumTemperature", None)
+        self.service.add_path("/History/MaximumTemperature", None)
+
+    def _update(self, temp, humidity, pressure):
+        temp = round(temp, 1)
+        self.service["/Temperature"] = temp
+        if pressure is not None:
+            self.service["/Pressure"] = round(pressure, 1)
+        if humidity is not None:
+            self.service["/Humidity"] = round(humidity, 1)
+        self.service["/History/MinimumTemperature"] = _safe_min(temp, self.service["/History/MinimumTemperature"])
+        self.service["/History/MaximumTemperature"] = _safe_max(temp, self.service["/History/MaximumTemperature"])
 
 
 class DCI2CService(SimpleI2CService):

@@ -128,14 +128,20 @@ class DCI2CService(SimpleI2CService):
         self._local_values["/Dc/0/Voltage"] = voltage
         self._local_values["/Dc/0/Current"] = current
         self._local_values["/Dc/0/Power"] = power
-        self._local_values["/History/MaximumVoltage"] = max(voltage, self._local_values["/History/MaximumVoltage"])
-        self._local_values["/History/MaximumCurrent"] = max(current, self._local_values["/History/MaximumCurrent"])
-        self._local_values["/History/MaximumPower"] = max(power, self._local_values["/History/MaximumPower"])
 
-        if self.lastPower is not None:
-            # trapezium integration
-            self._increment_energy_usage(toKWh((self.lastPower.power + power)/2 * (now - self.lastPower.timestamp)))
-        self.lastPower = PowerSample(power, now)
+        if voltage is not None:
+            self._local_values["/History/MaximumVoltage"] = max(voltage, self._local_values["/History/MaximumVoltage"])
+
+        if current is not None:
+            self._local_values["/History/MaximumCurrent"] = max(current, self._local_values["/History/MaximumCurrent"])
+
+        if power is not None:
+            self._local_values["/History/MaximumPower"] = max(power, self._local_values["/History/MaximumPower"])
+
+            if self.lastPower is not None:
+                # trapezium integration
+                self._increment_energy_usage(toKWh((self.lastPower.power + power)/2 * (now - self.lastPower.timestamp)))
+            self.lastPower = PowerSample(power, now)
 
     def publish(self):
         for k,v in self._local_values.items():

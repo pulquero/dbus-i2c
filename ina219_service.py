@@ -1,4 +1,4 @@
-from ina219 import INA219
+from ina219 import INA219, DeviceRangeError
 from service_utils import DCI2CService, DCLoadServiceMixin, DCSourceServiceMixin
 import time
 
@@ -19,10 +19,18 @@ class INA219Service(DCI2CService):
 
     def update(self):
         self.device.wake()
-        voltage = round(self._voltage(), 3)
-        current = self.current_direction * round(self.device.current()/1000, 3)
-        power = round(self.device.power()/1000, 3)
-        now = time.perf_counter()  # record the time as close to measurement-taking as possible
+        try:
+            voltage = round(self._voltage(), 3)
+            current = self.current_direction * round(self.device.current()/1000, 3)
+            power = round(self.device.power()/1000, 3)
+            now = time.perf_counter()  # record the time as close to measurement-taking as possible
+        except DeviceRangeError as err:
+            now = time.perf_counter()  # record the time as close to measurement-taking as possible
+            self.logger.warning(f"{err}")
+            voltage = None
+            current = None
+            power = None
+
         self.device.sleep()
         super()._update(voltage, current, power, now)
 

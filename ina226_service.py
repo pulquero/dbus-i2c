@@ -1,6 +1,8 @@
 import logging
 from ina226 import INA226
 from service_utils import DCI2CService, DCLoadServiceMixin, DCSourceServiceMixin
+from ina226 import DeviceRangeError
+import logging
 import time
 
 
@@ -13,18 +15,23 @@ class INA226Service(DCI2CService):
         self.device.configure(avg_mode=INA226.AVG_4BIT, bus_ct=INA226.VCT_2116us_BIT, shunt_ct=INA226.VCT_2116us_BIT)
         self.device.sleep()
         super()._configure_service()
-
+        
     def update(self):
         self.device.wake()
-        # With the parameters 4 samples and 2.116ms conversion time the conversion needs around 8.5ms per channel
-        # As there are two channels (supply voltage and current) the overall time is around 17ms
-        while self.device.is_conversion_ready() == 0:
-            # Sleep 10ms
-            time.sleep(0.01)
-        voltage = round(self._voltage(), 3)
-        current = round(self.device.current()/1000, 3)
-        power = round(self.device.power()/1000, 3)
-        now = time.perf_counter()  # record the time as close to measurement-taking as possible
+        try:
+        # attendre la fin de conversion
+            while self.device.is_conversion_ready() == 0:
+                time.sleep(0.01)
+            voltage = round(self._voltage(), 3)
+            current = round(self.device.current() / 1000, 3)
+            power = round(self.device.power() / 1000, 3)
+            now = time.perf_counter()
+        except DeviceRangeError:
+            logging.warning(
+                "INA226 overflow (current or shunt voltage out of range), skipping update"
+            )
+            self.device.sleep()
+            return
         self.device.sleep()
         super()._update(voltage, current, power, now)
 
